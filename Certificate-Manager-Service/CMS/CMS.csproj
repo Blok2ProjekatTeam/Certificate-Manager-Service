@@ -46,6 +46,7 @@
     <Compile Include="CertificateManager.cs" />
     <Compile Include="CertManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RevocationList.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
