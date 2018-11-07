@@ -17,7 +17,7 @@ namespace CMS
 	public class CertificateManager
 	{
 		
-		public bool CreateAndSignCertificate(string signCertificate)
+		public static bool CreateAndSignCertificate(string signCertificate)
 		{
 			bool ret = false;
 			bool hasKey = false;
@@ -29,10 +29,10 @@ namespace CMS
 			info.FileName = "cmd.exe";
 			info.RedirectStandardInput = true;
 			info.UseShellExecute = false;
-			Console.WriteLine("Unesite ime: ");
+			Console.WriteLine("Enter name for new certificate: ");
 			string certificate = Console.ReadLine();
 
-			Console.WriteLine("Unesite sifru: ");
+			Console.WriteLine("Enter password for new certificate: ");
 			string pass = Console.ReadLine();
 
 			p.StartInfo = info;
@@ -42,7 +42,11 @@ namespace CMS
 			{
 				if (sw.BaseStream.CanWrite)
 				{
-					sw.WriteLine(@"cd C:\Program Files (x86)\Windows Kits\10\bin\10.0.17134.0\x86");
+                    //sw.WriteLine(@"cd C:\Users\Administrator\Documents\git\CMS\Certificate-Manager-Service-master\Certificate-Manager-Service\Certificates");
+                    //sw.WriteLine(@"copy CMS.cer C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x86");
+                    //sw.WriteLine(@"copy CMS.pvk C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x86");
+
+                    sw.WriteLine(@"cd C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x86");
 
 					sw.WriteLine("makecert -sv {0}.pvk -iv CMS.pvk -n \"CN = {1}\" -pe -ic CMS.cer {2}.cer -sr localmachine -ss My -sky exchange", certificate, certificate.ToLower(), certificate);
 
@@ -55,14 +59,16 @@ namespace CMS
 					sw.WriteLine(" pvk2pfx.exe /pvk {0}.pvk /pi {1} /spc {2}.cer /pfx {3}.pfx",certificate,pass, certificate, certificate);
 
 					//	COPY CERTIFICATES
-					sw.WriteLine(@"cd C:\Program Files (x86)\Windows Kits\10\bin\10.0.17134.0\x86");
-					sw.WriteLine(@"copy {0}.cer D:\FAX\IV godina\Blok 2\projekat\Certificate-Manager-Service\Certificate-Manager-Service\Certificates", certificate);
-					sw.WriteLine(@"copy {0}.pfx D:\FAX\IV godina\Blok 2\projekat\Certificate-Manager-Service\Certificate-Manager-Service\Certificates", certificate);
-					sw.WriteLine(@"copy {0}.pvk D:\FAX\IV godina\Blok 2\projekat\Certificate-Manager-Service\Certificate-Manager-Service\Certificates", certificate);
+					sw.WriteLine(@"cd C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x86");
+					sw.WriteLine(@"copy {0}.cer C:\Users\Administrator\Documents\git\CMS\Certificate-Manager-Service-master\Certificate-Manager-Service\Certificates", certificate);
+					sw.WriteLine(@"copy {0}.pfx C:\Users\Administrator\Documents\git\CMS\Certificate-Manager-Service-master\Certificate-Manager-Service\Certificates", certificate);
+					sw.WriteLine(@"copy {0}.pvk C:\Users\Administrator\Documents\git\CMS\Certificate-Manager-Service-master\Certificate-Manager-Service\Certificates", certificate);
 
                     sw.WriteLine("del {0}.cer", certificate);
                     sw.WriteLine("del {0}.pfx", certificate);
                     sw.WriteLine("del {0}.pvk", certificate);
+                    //sw.WriteLine("del CMS.cer");
+                    //sw.WriteLine("del CMS.pvk");
 
                     do
                     {
@@ -82,7 +88,7 @@ namespace CMS
 
 		}
 
-        public bool CheckValidation(string certificate)
+        public static bool CheckValidation(string certificate)
         {
             bool ret = false;
             X509Certificate2 cert = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, certificate);
@@ -96,14 +102,6 @@ namespace CMS
                 ret = true;
             }
 
-            if(ret)
-            {
-                if(!cert.IssuerName.Equals("CMS"))
-                {
-                    ret = false;
-                }
-            }
-
             if (ret)
             {
                 if (RevocationList.List.Contains(cert))
@@ -111,12 +109,26 @@ namespace CMS
                     ret = false;
                 }
             }
-            else
+
+            if (ret)
             {
-                RevocationList.List.Add(cert);
+                if(!cert.Issuer.Equals("CN=CMS"))
+                {
+                    ret = false;
+                }
             }
 
             return ret;
         }
-	}
+
+        public static void Withdrawal(string certificate)   // POZIVA KLIJENT(ZELI DA POVUCE SERTIFIKAT)
+        {
+            X509Certificate2 cert = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, certificate);
+
+            RevocationList.List.Add(cert);
+
+            CreateAndSignCertificate("");
+        }
+
+    }
 }

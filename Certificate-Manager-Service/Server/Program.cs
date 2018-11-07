@@ -11,8 +11,12 @@ namespace Server
     {
         static void Main(string[] args)
         {
-			CertificateManager c = new CertificateManager();
-			c.CreateAndSignCertificate("s");
+            //CertificateManager.CreateAndSignCertificate("s");  // STA JE OVAJ PARAMETAR STO PRIMA?
+            //  GDE SE RADI VALIDACIJA ZA SERVERSKU A GDE ZA KLIJENTSKU STRANU?
+            if (!CertificateManager.CheckValidation("sale"))
+            {
+                //CertificateManager.CreateAndSignCertificate("s");
+            }
 			Console.ReadLine();
         }
     }
