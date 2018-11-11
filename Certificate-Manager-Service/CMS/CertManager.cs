@@ -28,7 +28,7 @@ namespace CMS
 			/// Check whether the subjectName of the certificate is exactly the same as the given "subjectName"
 			foreach (X509Certificate2 c in certCollection)
 			{
-				if (c.SubjectName.Name.Equals(string.Format("CN={0}", subjectName)))
+				if (c.SubjectName.Name.StartsWith(string.Format("CN=\"{0}", subjectName)))
 				{
 					return c;
 				}
@@ -72,5 +72,21 @@ namespace CMS
 
 			return certificate;
 		}
-	}
+
+        public static X509Certificate2 GetCertificateFromTrustedPeople(StoreName storeName, StoreLocation storeLocation)
+        {
+            X509Store store = new X509Store(storeName, storeLocation);
+            store.Open(OpenFlags.ReadOnly);
+
+            X509Certificate2Collection certCollection = store.Certificates;
+
+            /// Check whether the subjectName of the certificate is exactly the same as the given "subjectName"
+            foreach (X509Certificate2 c in certCollection)
+            {
+                    return c;
+            }
+
+            return null;
+        }
+    }
 }
