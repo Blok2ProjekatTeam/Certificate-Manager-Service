@@ -119,7 +119,7 @@ namespace CMS
             //client.OU = srvCert.GetNameInfo(X509NameType.DnsName, false);
             string[] parts = srvCert.Subject.Split('=', ' ');
             client.OU = parts[3];
-            client.CN = parts[1];
+            client.CN = parts[1].Substring(1);
             log.WriteToEventLog("Application", client.CN, client, opis);
             
 			return certificate;
@@ -160,7 +160,7 @@ namespace CMS
 
             string[] parts = cert.Subject.Split('=', ' ');
             client.OU = parts[3];
-            client.CN = parts[1];
+            client.CN = parts[1].Substring(1); ;
 
             string opis = "";
             client.LogId++;
@@ -175,7 +175,7 @@ namespace CMS
             {
                 opis = "Uspesno validirano!";
                 string path = Path.GetFullPath("../../../tekst.txt");
-                log.WriteToTxt(path, client);
+                //log.WriteToTxt(path, client);
             }else
             {
                 opis = "Sertifikat nije validan!";
@@ -197,7 +197,7 @@ namespace CMS
 
             string[] parts = cert.Subject.Split('=', ' ');
             client.OU = parts[3];
-            client.CN = parts[1];
+            client.CN = parts[1].Substring(1);
 
             string opis = "Povucen sertifikat";
             client.LogId++;
