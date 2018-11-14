@@ -8,15 +8,10 @@ using System.Threading.Tasks;
 
 namespace Common
 {
-    [ServiceContract]
-    public interface IWCFContract
-    {
-        [OperationContract]
-        void TestCommunication(X509Certificate2 certificate);
-
-        //[OperationContract]
-        //void WriteToTxt(string path, ClientInformation client, string opis);
-        //[OperationContract]
-        //void WriteToEventLog(string LogName, string SourceName, ClientInformation client, string opis);
-    }
+	[ServiceContract]
+	public interface IWCFContract
+	{
+		[OperationContract]
+		void TestCommunication(X509Certificate2 certificate);
+	}
 }

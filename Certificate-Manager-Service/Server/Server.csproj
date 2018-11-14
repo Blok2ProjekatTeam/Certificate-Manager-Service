@@ -4,14 +4,13 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DE2F19AA-B9E0-4194-8DDE-6538C2D8D2C0}</ProjectGuid>
+    <ProjectGuid>{AC5AC356-C44F-4C12-A526-54398A81B8A6}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Server</RootNamespace>
     <AssemblyName>Server</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -45,20 +44,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CMSClient.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ServerGet.cs" />
+    <Compile Include="ServiceCustomValidator.cs" />
     <Compile Include="WCFService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CMS\CMS.csproj">
-      <Project>{04501737-2951-4e7b-9975-1a10cd0170cb}</Project>
-      <Name>CMS</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Common\Common.csproj">
-      <Project>{5aab9340-ce48-4f85-8555-428bf88cc4e1}</Project>
+      <Project>{ED12A71A-DEB6-466C-ACF8-4F5F34D5D1B5}</Project>
       <Name>Common</Name>
     </ProjectReference>
   </ItemGroup>

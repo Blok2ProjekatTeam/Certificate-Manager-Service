@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace CMS
 {
-    public class RevocationList
-    {
-        public static List<X509Certificate2> List = new List<X509Certificate2>();
-    }
+	public class RevocationList
+	{
+		public static List<X509Certificate2> List = new List<X509Certificate2>();
+	}
 }

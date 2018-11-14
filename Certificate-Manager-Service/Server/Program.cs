@@ -1,10 +1,9 @@
-﻿using CMS;
-using Common;
+﻿using Common;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
 using System.ServiceModel;
 using System.ServiceModel.Security;
 using System.Text;
@@ -13,49 +12,92 @@ using System.Threading.Tasks;
 
 namespace Server
 {
-    class Program
-    {
-        static void Main(string[] args)
-        {
-            string serverCertificateName = CertificateManager.CreateAndSignCertificate("");
-            X509Certificate2 serverCertificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, serverCertificateName);
-                       
-            NetTcpBinding binding = new NetTcpBinding();
-            binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
+	class Program
+	{
+		static void Main(string[] args)
+		{
+			NetTcpBinding binding2 = new NetTcpBinding();
+			EndpointAddress address2 = new EndpointAddress("net.tcp://localhost:1324/CMS");
 
-            string address = "net.tcp://localhost:1234/Receiver";
-            ServiceHost host = new ServiceHost(typeof(WCFService));
-            host.AddServiceEndpoint(typeof(IWCFContract), binding, address);
+			Console.WriteLine("Enter new certificate password: ");
+			string password = Console.ReadLine();
+			using (CMSClient proxy2 = new CMSClient(binding2, address2))
+			{
+                bool temp = false;
+                X509Certificate2 serverCertificate = null;
 
-            host.Credentials.ClientCertificate.Authentication.CertificateValidationMode = X509CertificateValidationMode.Custom;
-            host.Credentials.ClientCertificate.Authentication.CustomCertificateValidator = new ServiceCertValidator();
+                string tempCertificate = WindowsIdentity.GetCurrent().Name;
 
-            host.Credentials.ClientCertificate.Authentication.RevocationMode = X509RevocationMode.NoCheck;
+                string[] parse = tempCertificate.Split('\\');
 
-            host.Credentials.ServiceCertificate.Certificate = CertManager.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, serverCertificateName);
+                string serverCertificateName = parse[1];
 
+                serverCertificate = ServerGet.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, serverCertificateName);
+                if (serverCertificate == null)
+                {
+                    serverCertificateName = proxy2.CreateAndSignCertificate(WindowsIdentity.GetCurrent().Name, password);
 
-            try
-            {
-                Thread.Sleep(5000);
-                host.Open();
-                Console.WriteLine("WCFService is started.\nPress <enter> to stop ...");
+                    do
+                    {
+                        serverCertificate = ServerGet.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, serverCertificateName);
+                        if(serverCertificate == null)
+                        {
+                            temp = false;
+                        }
+                        else if(!serverCertificate.HasPrivateKey)
+                        {
+                            temp = false;
+                        }
+                        else
+                        {
+                            temp = true;
+                        }
+                    } while (!temp);
+                }
+                else
+                {
+                    Console.WriteLine("Postoji sertifikat.");
+                }
                 
-                Console.ReadLine();
+				NetTcpBinding binding = new NetTcpBinding();
 
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine("[ERROR] {0}", e.Message);
-                Console.WriteLine("[StackTrace] {0}", e.StackTrace);
-                Console.ReadLine();
-            }
-            finally
-            {
-                host.Close();
-            }            
+                binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
 
-            Console.ReadLine();
-        }
-    }
+                string address = "net.tcp://localhost:2222/Receiver";
+
+                ServiceHost host = new ServiceHost(typeof(WCFService));
+
+				host.AddServiceEndpoint(typeof(IWCFContract), binding, address);
+
+                host.Credentials.ClientCertificate.Authentication.CertificateValidationMode = X509CertificateValidationMode.Custom;
+
+				host.Credentials.ClientCertificate.Authentication.CustomCertificateValidator = new ServiceCustomValidator(proxy2);
+
+				host.Credentials.ClientCertificate.Authentication.RevocationMode = X509RevocationMode.NoCheck;
+
+                host.Credentials.ServiceCertificate.Certificate = serverCertificate;
+
+                try
+				{
+					Thread.Sleep(5000);
+					host.Open();
+					Console.WriteLine("WCFService is started.\nPress <enter> to stop ...");
+
+					Console.ReadLine();
+
+				}
+				catch (Exception e)
+				{
+					Console.WriteLine("[ERROR] {0}", e.Message);
+					Console.WriteLine("[StackTrace] {0}", e.StackTrace);
+					Console.ReadLine();
+				}
+				finally
+				{
+					host.Close();
+				}
+				Console.ReadLine();
+			}
+		}
+	}
 }
