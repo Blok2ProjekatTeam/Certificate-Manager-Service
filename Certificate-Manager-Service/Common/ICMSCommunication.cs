@@ -21,7 +21,7 @@ namespace Common
 		bool CheckValidation(X509Certificate2 cert);
 
 		[OperationContract]
-		void Withdrawal(X509Certificate2 certificate);
+		void Withdrawal(X509Certificate2 certificate, string subjectName, string password);
 
 		[OperationContract]
 		X509Certificate2 GetCertificateFromStorage(StoreName storeName, StoreLocation storeLocation, string subjectName);
@@ -34,5 +34,8 @@ namespace Common
 
 		[OperationContract]
 		X509Certificate2 CertificateExist(StoreName storeName, StoreLocation storeLocation, string certificate);
+
+		[OperationContract]
+		int NumOfCertificates(string subjectName);
 	}
 }

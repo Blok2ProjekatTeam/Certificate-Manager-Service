@@ -25,7 +25,7 @@ namespace Client
 		/// <param name="certificate"> certificate to be validate </param>
 		public override void Validate(X509Certificate2 certificate)
 		{
-			proxy.Validate(certificate);
+				proxy.Validate(certificate);
 		}
 	}
 }

@@ -16,11 +16,11 @@ namespace Server
 	{
 		static void Main(string[] args)
 		{
+			Console.ReadKey();
+
 			NetTcpBinding binding2 = new NetTcpBinding();
 			EndpointAddress address2 = new EndpointAddress("net.tcp://localhost:1324/CMS");
-
-			Console.WriteLine("Enter new certificate password: ");
-			string password = Console.ReadLine();
+			
 			using (CMSClient proxy2 = new CMSClient(binding2, address2))
 			{
                 bool temp = false;
@@ -35,11 +35,19 @@ namespace Server
                 serverCertificate = ServerGet.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, serverCertificateName);
                 if (serverCertificate == null)
                 {
-                    serverCertificateName = proxy2.CreateAndSignCertificate(WindowsIdentity.GetCurrent().Name, password);
+					Console.WriteLine("Enter new certificate password: ");
+					string password = Console.ReadLine();
+					string tempCertificate2 = WindowsIdentity.GetCurrent().Name;
+
+					string[] parse2 = tempCertificate2.Split('\\');
+
+					string serverCertificateName2 = parse[1];
+
+					serverCertificateName = proxy2.CreateAndSignCertificate(WindowsIdentity.GetCurrent().Name, password);
 
                     do
                     {
-                        serverCertificate = ServerGet.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, serverCertificateName);
+                        serverCertificate = ServerGet.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, serverCertificateName2);
                         if(serverCertificate == null)
                         {
                             temp = false;
@@ -63,7 +71,7 @@ namespace Server
 
                 binding.Security.Transport.ClientCredentialType = TcpClientCredentialType.Certificate;
 
-                string address = "net.tcp://localhost:2222/Receiver";
+                string address = "net.tcp://localhost:1234/Server";
 
                 ServiceHost host = new ServiceHost(typeof(WCFService));
 
@@ -77,7 +85,10 @@ namespace Server
 
                 host.Credentials.ServiceCertificate.Certificate = serverCertificate;
 
-                try
+				Task task = new Task(() => LoggedBase.CheckIsAlive());
+				task.Start();
+
+				try
 				{
 					Thread.Sleep(5000);
 					host.Open();

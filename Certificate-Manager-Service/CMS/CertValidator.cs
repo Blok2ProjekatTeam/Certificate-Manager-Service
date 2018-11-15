@@ -10,7 +10,10 @@ using System.Security;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 
 namespace CMS
 {
@@ -24,12 +27,17 @@ namespace CMS
 		/// <param name="certificate"> certificate to be validate </param>
 		public void Validate(X509Certificate2 certificate)
 		{
-			Console.WriteLine("Validacija usao.");
+			string[] pom = certificate.Subject.Split('=', ' ');
+			string user = pom[1].Substring(1);
+			
 			if (!CheckValidation(certificate))
 			{
-				Console.WriteLine("Certificate is self-issued");
-
-				throw new Exception("Certificate is self-issued.");
+				Console.WriteLine("ERROR: Validacija {0} NIJE uspesno!", user);
+				throw new Exception("Non valid certificate");
+			}
+			else
+			{
+				Console.WriteLine("INFO: Validacija {0} uspesno!", user);
 			}
 		}
 
@@ -91,11 +99,11 @@ namespace CMS
 
 						sw.WriteLine(@"cd C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x86");
 
-						sw.WriteLine("makecert -sv {0}.pvk -iv CMS.pvk -n \"CN = {1} OU = {2}\" -pe -ic CMS.cer {3}.cer -sr localmachine -ss My -sky exchange", certificate, certificate, ou, certificate);
+						sw.WriteLine("makecert -sv {0}.pvk -iv CMS.pvk -n \"CN = {1}, OU = {2}\" -pe -ic CMS.cer {3}.cer -sky exchange", certificate, certificate, ou, certificate);
 
                         do
                         {
-                            srvCert = GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, certificate);
+							srvCert = GetCertificateFromFile(String.Format(@"C:\Program Files (x86)\Windows Kits\10\bin\10.0.16299.0\x86\{0}.cer", certificate), password);
                         } while (srvCert == null);
 
                         sw.WriteLine(" pvk2pfx.exe /pvk {0}.pvk /pi {1} /spc {2}.cer /pfx {3}.pfx", certificate, pass, certificate, certificate);
@@ -110,34 +118,23 @@ namespace CMS
                         sw.WriteLine("del {0}.pvk", certificate);
                         sw.WriteLine("del CMS.cer");
                         sw.WriteLine("del CMS.pvk");
-
-                        //                  path = Path.GetFullPath("../../../Certificates");
-                        //                  do
-                        //{
-                        //	srvCert2 = GetCertificateFromFile(path + "\\" + certificate + ".pfx",pass);
-
-                        //	if (srvCert2.HasPrivateKey)
-                        //	{
-                        //		hasKey = true;
-                        //	}
-                        //} while (hasKey == false);
-
-                        //sw.WriteLine(@"winhttpcertcfg -g -c LOCAL_MACHINE\My -s {0} -a {1}", certificate, name);
-
                     }
                 }
 
-                //ClientInformation client = new ClientInformation();
-                //Logger log = new Logger();
+				ClientInformation client = new ClientInformation();
+				Logger log = new Logger();
 
-                //string opis = "Sertifikat uspesno kreiran";
-                //client.LogId++;
-                //client.TimeStamp = DateTime.Now.ToString();
-                //string[] parts = srvCert.Subject.Split('=', ' ');
-                //client.OU = parts[3];
-                //client.CN = parts[1].Substring(1);
-                //log.WriteToEventLog("Application", client.CN, client, opis);
-            }
+				client.LogId++;
+				client.TimeStamp = DateTime.Now.ToString();
+				string[] parts = srvCert.Subject.Split('=', ' ');
+				for (int i = 3; i < parts.Count(); i++)
+				{
+					client.OU += parts[3];
+				}
+				client.CN = parts[1].Remove(parts[1].Length - 1);
+				string opis = "Sertifikat uspesno kreiran za :" + client.CN + "!";
+				log.WriteToEventLog("Application", "Administrator", client, opis);
+			}
 			else
 			{
 				Console.WriteLine("Sertifikat postoji.");
@@ -162,9 +159,15 @@ namespace CMS
 
 			if (ret)
 			{
-				if (RevocationList.List.Contains(cert))
+				string pathh = Path.GetFullPath("../../../RevocationList.txt");
+				string[] lines = System.IO.File.ReadAllLines(pathh);
+
+				foreach (string line in lines)
 				{
-					ret = false;
+					if(line.Equals(cert.SubjectName.Name))
+					{
+						ret = false;
+					}
 				}
 			}
 
@@ -176,12 +179,16 @@ namespace CMS
 				}
 			}
 
-			/*ClientInformation client = new ClientInformation();
+			ClientInformation client = new ClientInformation();
 			Logger log = new Logger();
 
 			string[] parts = cert.Subject.Split('=', ' ');
-			client.OU = parts[3];
-			client.CN = parts[1].Substring(1); ;
+			for(int i = 3; i < parts.Count(); i++)
+			{
+				client.OU += parts[3];
+			}
+			
+			client.CN = parts[1].Remove(parts[1].Length - 1); 
 
 			string opis = "";
 			client.LogId++;
@@ -191,27 +198,46 @@ namespace CMS
 
 			if (ret)
 			{
-				opis = "Uspesno validirano!";
+				opis = "Uspesno validirano za " + client.CN +"!";
 				string path = Path.GetFullPath("../../../tekst.txt");
 			}
 			else
 			{
-				opis = "Sertifikat nije validan!";
+				opis = "Sertifikat nije validan za " + client.CN + "!";
 			}
-			log.WriteToEventLog("Application", client.CN, client, opis);*/
+			log.WriteToEventLog("Application", "Administrator", client, opis);
 
 			return ret;
 		}
 
-		public void Withdrawal(X509Certificate2 certificate)   // POZIVA KLIJENT(ZELI DA POVUCE SERTIFIKAT)
+		public void Withdrawal(X509Certificate2 certificate, string subjectName, string password)   // POZIVA KLIJENT(ZELI DA POVUCE SERTIFIKAT)
 		{
-			/*X509Certificate2 cert = certificate;
+			string pathh = Path.GetFullPath("../../../RevocationList.txt");
 
+			string path = pathh;
+			StringBuilder sb = new StringBuilder();
 
-			RevocationList.List.Add(cert);
+			sb.Append("\n");
+			sb.Append(certificate.SubjectName.Name);
 
-			CreateAndSignCertificate();
-			ClientInformation client = new ClientInformation();
+			// Add text to the file.
+			if (!File.Exists(path))
+				File.WriteAllText(path, sb.ToString());
+			else
+				File.AppendAllText(path, sb.ToString());
+
+			string tempCertificate = subjectName;
+
+			string[] parse = tempCertificate.Split('\\');
+
+			string subjectNameCount = parse[1];
+
+			string subjectNameNew = subjectName + "New" + NumOfCertificates(subjectNameCount);
+
+			CreateAndSignCertificate(subjectNameNew, password);
+
+			//CreateAndSignCertificate(Thread.CurrentPrincipal.Identity.Name, newPass);
+			/*ClientInformation client = new ClientInformation();
 			Logger log = new Logger();
 
 			string[] parts = cert.Subject.Split('=', ' ');
@@ -237,7 +263,7 @@ namespace CMS
 			/// Check whether the subjectName of the certificate is exactly the same as the given "subjectName"
 			foreach (X509Certificate2 c in certCollection)
 			{
-				if (c.SubjectName.Name.StartsWith(string.Format("CN=\"{0}", subjectName)))
+				if (c.SubjectName.Name.StartsWith(string.Format("CN={0}", subjectName)))
 				{
 					return c;
 				}
@@ -267,7 +293,7 @@ namespace CMS
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("Erroro while trying to GetCertificateFromFile {0}. ERROR = {1}", fileName, e.Message);
+				//Console.WriteLine("Erroro while trying to GetCertificateFromFile {0}. ERROR = {1}", fileName, e.Message);
 			}
 
 			return certificate;
@@ -298,12 +324,36 @@ namespace CMS
 
 			foreach (X509Certificate2 c in certCollection)
 			{
-				if (c.SubjectName.Name.StartsWith(string.Format("CN=\"{0}", certificate)))
+				if (c.SubjectName.Name.StartsWith(string.Format("CN={0}", certificate)))
 					return c;
 			}
 
 			return null;
 
+		}
+
+		public int NumOfCertificates(string subjectName)
+		{
+			int ret = 0;
+
+			string pathh = Path.GetFullPath("../../../RevocationList.txt");
+			string[] lines = System.IO.File.ReadAllLines(pathh);
+
+
+			foreach (string line in lines)
+			{
+				string[] parse = line.Split('=', ',');
+				if (!line.Equals(""))
+				{
+					if (parse[1].Equals(subjectName) || parse[1].Contains(subjectName + "New"))
+					{
+						ret++;
+					}
+				}
+
+			}
+
+			return ret;
 		}
 
 		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

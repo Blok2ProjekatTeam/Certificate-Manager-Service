@@ -24,7 +24,7 @@ namespace Client
 			this.Credentials.ServiceCertificate.Authentication.RevocationMode = X509RevocationMode.NoCheck;
 
 			/// Set appropriate client's certificate on the channel. Use CertManager class to obtain the certificate based on the "cltCertCN"
-			this.Credentials.ClientCertificate.Certificate = proxy.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, clientCertificateName);
+			this.Credentials.ClientCertificate.Certificate = ClientGet.GetCertificateFromStorage(StoreName.My, StoreLocation.LocalMachine, clientCertificateName);
 
 			factory = this.CreateChannel();
 

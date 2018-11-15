@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Server
@@ -13,47 +14,31 @@ namespace Server
 	{
 		public void TestCommunication(X509Certificate2 certificate)
 		{
-			Console.WriteLine("Communication established.");
+			string[] pom = certificate.Subject.Split('=', ' ');
+			string user = pom[1].Remove(pom[1].Length - 1);
+			Console.WriteLine("INFO: Communication established with {0}.", user);
+
+			if (!LoggedBase.LoggedUsers.ContainsKey(user))
+				LoggedBase.LoggedUsers.Add(user, DateTime.Now);
+			else
+				LoggedBase.LoggedUsers[user] = DateTime.Now;
+
+
 			ClientInformation client = new ClientInformation();
-			client.TextId++;
+
 			client.TimeStamp = DateTime.Now.ToString();
-			client.OU = "";
-			client.CN = certificate.GetNameInfo(X509NameType.SimpleName, false);
+			string[] parts = certificate.Subject.Split('=', ' ');
+			for (int i = 3; i < parts.Count(); i++)
+			{
+				client.OU += parts[i];
+			}
+			client.CN = parts[1].Remove(parts[1].Length - 1);
+			client.TextId++;
+
 
 			Logger log = new Logger();
 			string path = Path.GetFullPath("../../../tekst.txt");
 			log.WriteToTxt(path, client);
 		}
-
-		//public void WriteToEventLog(string LogName, string SourceName, ClientInformation client, string opis)
-		//{
-		//    if (!EventLog.SourceExists(SourceName))
-		//    {
-		//        EventLog.CreateEventSource(SourceName, LogName);
-		//    }
-		//    EventLog newLog = new EventLog(LogName, Environment.MachineName, SourceName);
-		//    newLog.WriteEntry(client.Id + " " + client.TimeStamp + " " + client.OU + " " + client.CN + " " + opis, EventLogEntryType.Information, client.Id);
-
-
-		//}
-
-		//public void WriteToTxt(string path, ClientInformation client, string opis)
-		//{
-		//    if (!File.Exists(path))
-		//    {
-		//        using (StreamWriter writetext = new StreamWriter(path))
-		//        {
-		//            writetext.WriteLine(client.Id + " " + client.TimeStamp + " " + client.OU + " " + client.CN + " " + opis);
-		//        }
-		//    }
-		//    else if (File.Exists(path))
-		//    {
-		//        using (StreamWriter writetext = File.AppendText(path))
-		//        {
-		//            writetext.WriteLine(client.Id + " " + client.TimeStamp + " " + client.OU + " " + client.CN + " " + opis);
-		//        }
-		//    }
-
-		//}
 	}
 }

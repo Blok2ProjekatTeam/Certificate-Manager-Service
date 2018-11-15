@@ -19,7 +19,7 @@ namespace Server
             /// Check whether the subjectName of the certificate is exactly the same as the given "subjectName"
             foreach (X509Certificate2 c in certCollection)
             {
-                if (c.SubjectName.Name.StartsWith(string.Format("CN=\"{0}", subjectName)))
+                if (c.SubjectName.Name.StartsWith(string.Format("CN={0}", subjectName)))
                 {
                     return c;
                 }

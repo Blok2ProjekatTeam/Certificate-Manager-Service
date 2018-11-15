@@ -46,6 +46,8 @@
     <Compile Include="ICMSCommunication.cs" />
     <Compile Include="Formatter.cs" />
     <Compile Include="IWCFContract.cs" />
+    <Compile Include="LoggedBase.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

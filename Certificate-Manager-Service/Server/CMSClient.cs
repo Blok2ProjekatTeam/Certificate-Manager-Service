@@ -58,11 +58,11 @@ namespace Server
 			return false;
 		}
 
-		public void Withdrawal(X509Certificate2 certificate)
+		public void Withdrawal(X509Certificate2 certificate, string subjectName, string pass)
 		{
 			try
 			{
-				factory.Withdrawal(certificate);
+				factory.Withdrawal(certificate, subjectName, pass);
 			}
 			catch (Exception e)
 			{
@@ -124,6 +124,20 @@ namespace Server
 			}
 
 			return null;
+		}
+
+		public int NumOfCertificates(string subjectName)
+		{
+			try
+			{
+				return factory.NumOfCertificates(subjectName);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine("[CertificateExist] ERROR = {0}", e.Message);
+			}
+
+			return -1;
 		}
 	}
 }
