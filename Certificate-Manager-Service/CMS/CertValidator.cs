@@ -28,7 +28,7 @@ namespace CMS
 		public void Validate(X509Certificate2 certificate)
 		{
 			string[] pom = certificate.Subject.Split('=', ' ');
-			string user = pom[1].Substring(1);
+			string user = pom[1].Remove(pom[1].Length - 1);
 			
 			if (!CheckValidation(certificate))
 			{
@@ -237,18 +237,18 @@ namespace CMS
 			CreateAndSignCertificate(subjectNameNew, password);
 
 			//CreateAndSignCertificate(Thread.CurrentPrincipal.Identity.Name, newPass);
-			/*ClientInformation client = new ClientInformation();
+			ClientInformation client = new ClientInformation();
 			Logger log = new Logger();
 
-			string[] parts = cert.Subject.Split('=', ' ');
+			string[] parts = certificate.Subject.Split('=', ' ');
 			client.OU = parts[3];
-			client.CN = parts[1].Substring(1);
+			client.CN = parts[1].Remove(parts[1].Length - 1);
 
 			string opis = "Povucen sertifikat";
 			client.LogId++;
 
 			client.TimeStamp = DateTime.Now.ToString();
-			log.WriteToEventLog("Application", client.CN, client, opis);*/
+			log.WriteToEventLog("Application", "Administrator", client, opis);
 		}
 
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
