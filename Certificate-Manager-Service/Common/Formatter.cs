@@ -17,6 +17,7 @@ namespace Common
 		{
 			string[] parts = new string[] { };
 
+
 			if (winLogonName.Contains("@"))
 			{
 				///UPN format
