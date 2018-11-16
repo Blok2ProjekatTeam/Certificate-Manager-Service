@@ -1,11 +1,13 @@
 ﻿using Common;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Principal;
 using System.ServiceModel;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Client
@@ -39,6 +41,8 @@ namespace Client
 			catch (Exception e)
 			{
 				Console.WriteLine("[TestCommunication] ERROR = {0}", e.Message);
+                Thread.Sleep(5000);
+                Process.GetCurrentProcess().Kill();
 			}
 		}
 
